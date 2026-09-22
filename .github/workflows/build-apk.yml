@@ -39,26 +39,20 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Force Java and Kotlin 17
+      - name: Fix Java 17 in Gradle files
         run: |
-          mkdir -p "$HOME/.gradle/init.d"
-          cat > "$HOME/.gradle/init.d/java17.gradle" <<'EOF'
-          import org.gradle.api.tasks.compile.JavaCompile
-          import org.gradle.api.JavaVersion
+          find project -type f \( -name "*.gradle" -o -name "*.gradle.kts" \) -print0 | while IFS= read -r -d '' file; do
+            sed -i 's/JavaVersion.VERSION_1_8/JavaVersion.VERSION_17/g' "$file"
+            sed -i 's/JavaLanguageVersion.of(8)/JavaLanguageVersion.of(17)/g' "$file"
+            sed -i 's/jvmTarget[[:space:]]*=[[:space:]]*"1.8"/jvmTarget = "17"/g' "$file"
+            sed -i 's/sourceCompatibility[[:space:]]*=[[:space:]]*JavaVersion.VERSION_1_8/sourceCompatibility = JavaVersion.VERSION_17/g' "$file"
+            sed -i 's/targetCompatibility[[:space:]]*=[[:space:]]*JavaVersion.VERSION_1_8/targetCompatibility = JavaVersion.VERSION_17/g' "$file"
+          done
 
-          allprojects {
-              tasks.withType(JavaCompile).configureEach {
-                  sourceCompatibility = JavaVersion.VERSION_17.toString()
-                  targetCompatibility = JavaVersion.VERSION_17.toString()
-              }
-
-              tasks.matching {
-                  it.class.name == 'org.jetbrains.kotlin.gradle.tasks.KotlinCompile'
-              }.configureEach {
-                  kotlinOptions.jvmTarget = "17"
-              }
-          }
-          EOF
+      - name: Build APK
+        run: |
+          cd "$PROJECT_DIR"
+          gradle assembleDebug --no-daemon
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
