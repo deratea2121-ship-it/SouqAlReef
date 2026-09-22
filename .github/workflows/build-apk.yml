@@ -39,7 +39,23 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Force Java and Kotlin 17
+        run: |
+          mkdir -p "$HOME/.gradle/init.d"
+          cat > "$HOME/.gradle/init.d/java17.gradle" <<'EOF'
+          gradle.projectsEvaluated {
+              allprojects {
+                  tasks.withType(JavaCompile).configureEach {
+                      sourceCompatibility = "17"
+                      targetCompatibility = "17"
+                  }
 
+                  tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                      kotlinOptions.jvmTarget = "17"
+                  }
+              }
+          }
+          EOF
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
