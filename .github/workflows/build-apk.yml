@@ -27,7 +27,7 @@ jobs:
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Found project at: $PROJECT_DIR"
 
-      -       - name: Create Gradle Java 17 override
+      -       -       - name: Create Gradle Java 17 override
         run: |
           mkdir -p "$HOME/.gradle/init.d"
 
