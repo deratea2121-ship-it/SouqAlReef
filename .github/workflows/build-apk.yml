@@ -39,15 +39,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Fix Kotlin JVM target
+      - name: Disable JVM target validation
         run: |
-          find project -type f \( -name "*.gradle" -o -name "*.gradle.kts" \) -print0 | while IFS= read -r -d '' file; do
-            sed -i 's/JvmTarget.JVM_17/JvmTarget.JVM_1_8/g' "$file"
-            sed -i 's/JvmTarget.JVM_17/JvmTarget.JVM_1_8/g' "$file"
-            sed -i 's/jvmTarget[[:space:]]*=[[:space:]]*"17"/jvmTarget = "1.8"/g' "$file"
-            sed -i 's/jvmTarget\.set([^)]*JVM_17[^)]*)/jvmTarget.set(JvmTarget.JVM_1_8)/g' "$file"
-            sed -i 's/JavaVersion.VERSION_17/JavaVersion.VERSION_1_8/g' "$file"
-          done
+          echo "kotlin.jvm.target.validation.mode=ignore" >> "$PROJECT_DIR/gradle.properties"
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
