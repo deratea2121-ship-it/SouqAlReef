@@ -1,4 +1,4 @@
-name: Build Souq Al Reef APK
+name: Build Souq Al Reef APK 2
 on:
   workflow_dispatch:
 jobs:
