@@ -46,7 +46,7 @@ jobs:
         run: |
           FILE=$(find project -name MainActivity.kt -type f | head -1)
           echo "===== MAIN ACTIVITY LINES 75-100 ====="
-          nl -ba "$FILE" | sed -n '75,100p''
+          nl -ba "$FILE" | sed -n "75,100p"
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
