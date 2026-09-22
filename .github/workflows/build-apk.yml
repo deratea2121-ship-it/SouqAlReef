@@ -43,11 +43,11 @@ jobs:
         run: |
           mkdir -p "$HOME/.gradle/init.d"
           cat > "$HOME/.gradle/init.d/kotlin8.gradle" <<'EOF'
-          import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
           allprojects {
-              tasks.withType(KotlinCompile).configureEach {
-                  kotlinOptions.jvmTarget = "1.8"
+              tasks.configureEach { task ->
+                  if (task.class.name == 'org.jetbrains.kotlin.gradle.tasks.KotlinCompile') {
+                      task.kotlinOptions.jvmTarget = "1.8"
+                  }
               }
           }
           EOF
