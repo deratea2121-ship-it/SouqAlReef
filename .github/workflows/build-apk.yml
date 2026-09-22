@@ -39,7 +39,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-            - name: Force Java and Kotlin 17
+      - name: Force Java and Kotlin 17
         run: |
           mkdir -p "$HOME/.gradle/init.d"
           cat > "$HOME/.gradle/init.d/java17.gradle" <<'EOF'
