@@ -42,6 +42,11 @@ jobs:
       - name: Disable JVM target validation
         run: |
           echo "kotlin.jvm.target.validation.mode=ignore" >> "$PROJECT_DIR/gradle.properties"
+      - name: Show MainActivity errors
+        run: |
+          FILE=$(find project -name MainActivity.kt -type f | head -1)
+          echo "===== MainActivity.kt ====="
+          nl -ba "$FILE" | sed -n '75,100p'
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
