@@ -14,13 +14,18 @@ jobs:
       - name: Extract project
         run: |
           mkdir -p project
-          unzip -q SouqAlReef_PhoneBuild.zip -d project
+          unzip -q "SouqAlReef_PhoneBuild 1.zip" -d project
+          find project -maxdepth 5 -type f | head -100
 
       - name: Find Android project
         run: |
-          PROJECT_DIR=$(find project -name settings.gradle.kts -type f -print -quit | xargs dirname)
+          SETTINGS=$(find project -name settings.gradle.kts -type f | head -1)
+          if [ -z "$SETTINGS" ]; then
+            echo "Android project not found"
+            exit 1
+          fi
+          PROJECT_DIR=$(dirname "$SETTINGS")
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Android project: $PROJECT_DIR"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -33,10 +38,15 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Fix Kotlin Java target
+        run: |
+          find "$PROJECT_DIR" -name "*.gradle.kts" -type f -exec sed -i \
+            's/jvmTarget *= *["'\'']1\.8["'\'']/jvmTarget = "17"/g' {} \;
+
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
-          gradle assembleDebug --no-daemon -Pkotlin.jvm.target.validation.mode=warning
+          gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
