@@ -39,18 +39,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Match Kotlin to Java 8
+      - name: Fix Kotlin JVM target
         run: |
-          mkdir -p "$HOME/.gradle/init.d"
-          cat > "$HOME/.gradle/init.d/kotlin8.gradle" <<'EOF'
-          allprojects {
-              tasks.configureEach { task ->
-                  if (task.class.name == 'org.jetbrains.kotlin.gradle.tasks.KotlinCompile') {
-                      task.kotlinOptions.jvmTarget = "1.8"
-                  }
-              }
-          }
-          EOF
+          find project -type f \( -name "*.gradle" -o -name "*.gradle.kts" \) -print0 | while IFS= read -r -d '' file; do
+            sed -i 's/JvmTarget.JVM_17/JvmTarget.JVM_1_8/g' "$file"
+            sed -i 's/JvmTarget.JVM_17/JvmTarget.JVM_1_8/g' "$file"
+            sed -i 's/jvmTarget[[:space:]]*=[[:space:]]*"17"/jvmTarget = "1.8"/g' "$file"
+            sed -i 's/jvmTarget\.set([^)]*JVM_17[^)]*)/jvmTarget.set(JvmTarget.JVM_1_8)/g' "$file"
+            sed -i 's/JavaVersion.VERSION_17/JavaVersion.VERSION_1_8/g' "$file"
+          done
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
