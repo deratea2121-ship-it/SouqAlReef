@@ -162,6 +162,9 @@ jobs:
           PY
 
           cd "$PROJECT_DIR"
+                    echo "===== IMPORTS ====="
+          nl -ba "$FILE" | sed -n '1,75p'
+          echo "===== END IMPORTS ====="
           gradle assembleDebug --no-daemon
       - name: Build APK
         run: |
