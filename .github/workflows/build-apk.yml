@@ -44,7 +44,14 @@ jobs:
           echo "kotlin.jvm.target.validation.mode=ignore" >> "$PROJECT_DIR/gradle.properties"
       - name: Show MainActivity errors
         run: |
-          FILE=$(find project -name MainActivity.kt -type f | head -1)
+          FILE=$(find project -name MainActivity.kt -type f -print -quit)
+          echo "FILE=$FILE"
+
+          if [ -z "$FILE" ]; then
+          echo "MainActivity.kt not found"
+          find project -name MainActivity.kt -type f
+          exit 1
+          fi
           echo "===== MAIN ACTIVITY LINES 75-100 ====="
           nl -ba "$FILE" | sed -n "75,100p"
       - name: Build APK
