@@ -50,10 +50,119 @@ jobs:
       - name: Build APK
         run: |
           FILE=$(find project -name MainActivity.kt -type f | head -1)
-          echo "===== START CODE ====="
-          nl -ba "$FILE" | sed -n '75,100p'
-          echo "===== END CODE ====="
-          exit 1
+
+          python3 - "$FILE" <<'PY'
+          import sys
+
+          p = sys.argv[1]
+
+          with open(p, "r", encoding="utf-8") as f:
+              s = f.read()
+
+          # إزالة القوس الزائد قبل Login
+          s = s.replace("\n}\n\n@Composable fun Login", "\n\n@Composable fun Login", 1)
+
+          # إصلاح NavItem
+          start = s.index("@Composable fun NavItem(")
+          end = s.index("@Composable fun Home(", start)
+
+          nav = '''@Composable
+          fun NavItem(icon:androidx.compose.ui.graphics.vector.ImageVector,label:String,selected:Boolean,onClick:()->Unit){
+              androidx.compose.material3.NavigationBarItem(
+                  selected=selected,
+                  onClick=onClick,
+                  icon={Icon(icon,null)},
+                  label={Text(label,fontSize=10.sp)}
+              )
+          }
+
+          '''
+
+          s = s[:start] + nav + s[end:]
+
+          # إصلاح Cart
+          start = s.index("@Composable fun Cart(")
+          end = s.index("@Composable fun Orders(", start)
+
+          cart = '''@Composable
+          fun Cart(db:MarketDb,user:Long,refresh:()->Unit){
+              val lines=db.cart(user)
+              val total=lines.sumOf{it.product.price*it.qty}
+
+              Column(
+                  Modifier.fillMaxSize().background(Bg)
+              ){
+                  Header()
+                  Text(
+                      "سلة المشتريات",
+                      fontSize=24.sp,
+                      fontWeight=FontWeight.Bold,
+                      modifier=Modifier.padding(18.dp)
+                  )
+
+                  if(lines.isEmpty()){
+                      Text(
+                          "السلة فارغة",
+                          modifier=Modifier.padding(18.dp)
+                      )
+                  }else{
+                      LazyColumn(
+                          Modifier.weight(1f)
+                      ){
+                          items(lines){l->
+                              Text(
+                                  "${l.product.name} × ${l.qty} = ${l.product.price*l.qty} ل.س",
+                                  modifier=Modifier
+                                      .fillMaxWidth()
+                                      .padding(14.dp)
+                              )
+                          }
+                      }
+
+                      Text(
+                          "الإجمالي: $total ل.س",
+                          fontWeight=FontWeight.Bold,
+                          fontSize=20.sp,
+                          modifier=Modifier.padding(16.dp)
+                      )
+
+                      Button(
+                          onClick={
+                              db.createOrder(user,"الدفع عند الاستلام")
+                              refresh()
+                          },
+                          modifier=Modifier
+                              .fillMaxWidth()
+                              .padding(16.dp)
+                      ){
+                          Text("تأكيد الطلب والدفع عند الاستلام")
+                      }
+
+                      Button(
+                          onClick={
+                              db.createOrder(user,"الدفع الإلكتروني")
+                              refresh()
+                          },
+                          modifier=Modifier
+                              .fillMaxWidth()
+                              .padding(horizontal=16.dp)
+                      ){
+                          Text("الدفع الإلكتروني (يتطلب بوابة دفع)")
+                      }
+                  }
+              }
+          }
+
+          '''
+
+          s = s[:start] + cart + s[end:]
+
+          with open(p, "w", encoding="utf-8") as f:
+              f.write(s)
+          PY
+
+          cd "$PROJECT_DIR"
+          gradle assembleDebug --no-daemon
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
