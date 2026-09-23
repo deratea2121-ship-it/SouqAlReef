@@ -50,53 +50,10 @@ jobs:
       - name: Build APK
         run: |
           FILE=$(find project -name MainActivity.kt -type f | head -1)
-
-          python3 - "$FILE" <<'PY'
-          import sys
-          p = sys.argv[1]
-
-          with open(p, "r", encoding="utf-8") as f:
-              lines = f.readlines()
-
-          # إضافة الاستيرادات المطلوبة
-          text = "".join(lines)
-          package_line = next(i for i, x in enumerate(lines) if x.startswith("package "))
-          imports = [
-              "import androidx.compose.material3.NavigationBarItem\n",
-              "import androidx.compose.material3.Text\n"
-          ]
-
-          for imp in reversed(imports):
-              if imp.strip() not in text:
-                  lines.insert(package_line + 1, imp)
-
-          # إصلاح دالة Cart بالكامل
-          for i, line in enumerate(lines):
-              if "@Composable fun Cart(" in line:
-                  lines[i] = '''@Composable fun Cart(db:MarketDb,user:Long,refresh:()->Unit){\n'''
-                  lines[i] += '''    val lines=db.cart(user)\n'''
-                  lines[i] += '''    val total=lines.sumOf{it.product.price*it.qty}\n'''
-                  lines[i] += '''    Column(Modifier.fillMaxSize().background(Bg)){\n'''
-                  lines[i] += '''        Header()\n'''
-                  lines[i] += '''        Text("سلة المشتريات",fontSize=24.sp,fontWeight=FontWeight.Bold,modifier=Modifier.padding(18.dp))\n'''
-                  lines[i] += '''        if(lines.isEmpty()){\n'''
-                  lines[i] += '''            Text("السلة فارغة",modifier=Modifier.padding(18.dp))\n'''
-                  lines[i] += '''        }else{\n'''
-                  lines[i] += '''            LazyColumn(Modifier.weight(1f)){items(lines){l->Text("${l.product.name} × ${l.qty} = ${l.product.price*l.qty} ل.س",modifier=Modifier.fillMaxWidth().padding(14.dp))}}\n'''
-                  lines[i] += '''            Text("الإجمالي: $total ل.س",fontWeight=FontWeight.Bold,fontSize=20.sp,modifier=Modifier.padding(16.dp))\n'''
-                  lines[i] += '''            Button(onClick={db.createOrder(user,"الدفع عند الاستلام");refresh()},modifier=Modifier.fillMaxWidth().padding(16.dp)){Text("تأكيد الطلب والدفع عند الاستلام")}\n'''
-                  lines[i] += '''            Button(onClick={db.createOrder(user,"الدفع الإلكتروني");refresh()},modifier=Modifier.fillMaxWidth().padding(horizontal=16.dp)){Text("الدفع الإلكتروني (يتطلب بوابة دفع)")}\n'''
-                  lines[i] += '''        }\n'''
-                  lines[i] += '''    }\n'''
-                  lines[i] += '''}\n'''
-                  break
-
-          with open(p, "w", encoding="utf-8") as f:
-              f.writelines(lines)
-          PY
-
-          cd "$PROJECT_DIR"
-          gradle assembleDebug --no-daemon
+          echo "===== START CODE ====="
+          nl -ba "$FILE" | sed -n '75,100p'
+          echo "===== END CODE ====="
+          exit 1
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
