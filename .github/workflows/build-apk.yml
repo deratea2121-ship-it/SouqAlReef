@@ -57,7 +57,10 @@ jobs:
       - name: Build APK
         run: |
           FILE=$(find project -name MainActivity.kt -type f | head -1)
-
+           echo "===== IMPORTS ====="
+          nl -ba "$FILE" | sed -n '1,74p'
+          echo "===== END IMPORTS ====="
+          exit 1
           python3 - "$FILE" <<'PY'
           import sys
 
