@@ -62,7 +62,11 @@ jobs:
           echo "===== APP GRADLE ====="
           find project -name "build.gradle.kts" -path "*/app/*" -print -exec cat {} \;
           echo "===== END APP GRADLE ====="
-          exit 1
+          echo "===== CODE CHECK ====="
+           nl -ba "$FILE" | sed -n '50,60p'
+           nl -ba "$FILE" | sed -n '84,94p'
+           echo "===== END CODE CHECK ====="
+            exit 1
           python3 - "$FILE" <<'PY'
           import sys
 
